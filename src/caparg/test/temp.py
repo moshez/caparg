@@ -25,9 +25,16 @@ parser = caparg.command('',
     caparg.command('remote add', ...)
 )
 
+parser_builder = caparg.Builder()
+sub_builder = parser_builder.add(caparg.command(name....,
+                                  
 @attr.s(frozen=True)
 class Parsed(object):
     values = attr.ib()
     subcommand = attr.ib()
+    
+@command(name=' .....', under='somename',
+         parser=something)
+def foo
     
     
