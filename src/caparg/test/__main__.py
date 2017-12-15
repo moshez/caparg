@@ -1,44 +1,41 @@
-import argparse
 import sys
+import typing
 
-def mkparser(*things):
-    parser = argparse.ArgumentParser()
-    subparsers = parser.add_subparsers()
-    for thing in things:
-        thing.add_to(parser, subparsers)
-    return parser.parse_args
+import caparg
 
-@attr.s(frozen=True)
-class argument(object):
-    name = attr.ib()
-    type = attr.ib(default=str)
-    required = attr.ib(default=False)
-
-    def add_to(self, parser, subparser):
-        parser.add_argument(name=self.name, required=self.required)
-
-@attr.s(frozen=True)
-class Subcommand(object):
-    name = attr.ib()
-    things = attr.ib()
-
-    @classmethod
-    def create(cls, name, *things):
-        return cls(name, things)
-
-subcommand = 
-
-parser = mkparser(
-    subcommand(name="build",
+parser = caparg.command('',
+    caparg.options(
+        messages=caparg.option(type=str, required=True),
+        config=caparg.option(type=str, required=True),
     ),
-    subcommand(name="run",
-        argument("--port", type=int, required=True),
+    caparg.command('add',
+        name=caparg.option(type=str, required=True),
+        cmd=caparg.option(type=str, required=True),
+        arg=caparg.option(type=typing.List[str], have_default=True),
+        env=caparg.option(type=typing.Dict[str,str], have_default=True),
+        uid=caparg.option(type=int),
+        gid=caparg.option(type=int),
+        extras=caparg.option(type=str),
     ),
-    subcommand(name="test",
-        argument("--full", type=bool),
+    caparg.command('remove',
+        name=caparg.option(type=str, required=True),
     ),
-    subcommand(name="push",
+    caparg.command('restart',
+        name=caparg.option(type=str, required=True),
+    ),
+    caparg.command('restart-all',
+    ),
+    caparg.command('remote',
+        caparg.options(verbose=caparg.option(type=bool, required=True)),
+        caparg.command('remove',
+            caparg.positional(name='name', type=bool, required=True),
+        ),
+    ),
+    caparg.command('remote add',
+        caparg.positional(name='name', type=bool, required=True),
+        caparg.positional(name='url', type=bool, required=True),
     ),
 )
 
-print(parser(sys.argv[1:]))
+ret = parser.parse(sys.argv[1:])
+print(ret)
