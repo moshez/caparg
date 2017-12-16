@@ -1,3 +1,5 @@
+import argparse
+
 import attr
 import pyrsistent
 
@@ -49,12 +51,25 @@ class Parser(object):
     _subcommands = attr.ib()
 
     def parse_args(self, args):
-        if not args:
-            parts = ["Usage:\n"]
-            for key in sorted(self._subcommands):
-                parts.append("    " + " ".join(key) + "\n")
-            raise ParseError(''.join(parts))
-        return self
+        args = pyrsistent.pvector(args)
+        candidates = [i
+                      for i in range(1, len(args)+1)
+                      if args[:i] in self._subcommands]
+        if not candidates:
+            raise ParseError(self._make_help())
+        parts = max(candidates)
+        subcommand, rest = self._subcommands[args[:parts]], args[parts:]
+        parser = argparse.ArgumentParser(' '.join(args[:parts]))
+        for thing in subcommand:
+            thing.add_argument(parser)
+        ns = parser.parse_args(rest)
+        return ns
+
+    def _make_help(self):
+        parts = ["Usage:\n"]
+        for key in sorted(self._subcommands):
+            parts.append("    " + " ".join(key) + "\n")
+        return ''.join(parts)
 
 @attr.s(frozen=True)
 class _PreOption(object):
@@ -70,6 +85,17 @@ class _PreOption(object):
         _required = attr.ib()
         _have_default = attr.ib()
         _name = attr.ib()
+
+        def add_argument(self, parser):
+            if self._type == str:
+                parser.add_argument('--' + self._name, type=str,
+                                    required=self._required)
+                return
+            raise NotImplementedError("cannot add to parser",
+                                      self, parser)
+
+        def get_value(self, namespace):
+            pass
 
     def with_name(self, name):
         return self.Option(name=name, type=self._type, required=self._required,
