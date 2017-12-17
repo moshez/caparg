@@ -41,14 +41,14 @@ parser = caparg.command('',
         caparg.options(verbose=caparg.option(type=bool, required=True)),
         # ...or with a sub-subcommand 'remove'
         caparg.command('remove',
-            caparg.positional(name='name', type=bool, required=True),
+            caparg.positional(name='name', type=str),
         ),
     ),
     # It is also possible to put sub-sub-commands at the top-level.
     # In that case, they are separated with whitespace.
     caparg.command('remote add',
-        caparg.positional(name='name', type=bool, required=True),
-        caparg.positional(name='url', type=bool, required=True),
+        caparg.positional(name='name', type=str),
+        caparg.positional(name='url', type=str),
     ),
 )
 

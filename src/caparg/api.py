@@ -62,8 +62,9 @@ class Parser(object):
         parser = argparse.ArgumentParser(' '.join(args[:parts]))
         for thing in subcommand:
             thing.add_argument(parser)
-        ns = parser.parse_args(rest)
-        return ns
+        ret = vars(parser.parse_args(rest))
+        ret['__caparg_subcommand__'] = args[:parts]
+        return ret
 
     def _make_help(self):
         parts = ["Usage:\n"]
@@ -89,6 +90,10 @@ class _PreOption(object):
         def add_argument(self, parser):
             if self._type == str:
                 parser.add_argument('--' + self._name, type=str,
+                                    required=self._required)
+                return
+            if self._type == bool:
+                parser.add_argument('--' + self._name, type=bool,
                                     required=self._required)
                 return
             raise NotImplementedError("cannot add to parser",
@@ -121,6 +126,7 @@ class _OptionList(object):
     def add_to(self, parent_name, options):
         return pyrsistent.v()
 
+
 def options(**kwargs):
     return _OptionList(pyrsistent.pmap(kwargs))
 
@@ -137,6 +143,13 @@ class _Positional(object):
 
     def add_to(self, parent_name, options):
         return pyrsistent.v()
+
+    def add_argument(self, parser):
+        if self._type == str:
+            parser.add_argument(self._name, type=str)
+            return
+        raise NotImplementedError("cannot add to parser",
+                                  self, parser)
 
 def positional(name, type, required=False, have_default=False):
     return _Positional(name, type, required, have_default)
