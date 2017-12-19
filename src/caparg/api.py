@@ -45,6 +45,11 @@ class ParseError(ValueError):
 
      message = attr.ib()
 
+class _RaisingArgumentParser(argparse.ArgumentParser):
+
+    def error(self, message):
+        raise ParseError(message)
+
 @attr.s(frozen=True)
 class Parser(object):
 
@@ -59,7 +64,7 @@ class Parser(object):
             raise ParseError(self._make_help())
         parts = max(candidates)
         subcommand, rest = self._subcommands[args[:parts]], args[parts:]
-        parser = argparse.ArgumentParser(' '.join(args[:parts]))
+        parser = _RaisingArgumentParser(' '.join(args[:parts]))
         for thing in subcommand:
             thing.add_argument(parser)
         ret = vars(parser.parse_args(rest))
