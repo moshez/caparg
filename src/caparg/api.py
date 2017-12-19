@@ -93,8 +93,8 @@ class _PreOption(object):
                                     required=self._required)
                 return
             if self._type == bool:
-                parser.add_argument('--' + self._name, type=bool,
-                                    required=self._required)
+                parser.add_argument('--' + self._name, action='store_true',
+                                    default=False)
                 return
             raise NotImplementedError("cannot add to parser",
                                       self, parser)
