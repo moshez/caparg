@@ -34,9 +34,27 @@ class SubcommandTester(unittest.TestCase):
         self.assertEquals(parsed.pop('where'), 'cafe')
         self.assertEquals(parsed, {})
 
-    def test_failure(self):
+    def test_no_required(self):
         simple = caparg.command('',
                      caparg.command('eat',
                                where=caparg.option(type=str, required=True)))
         with self.assertRaises(caparg.ParseError):
             simple.parse(['eat'])
+
+    def test_no_command(self):
+        simple = caparg.command('',
+                     caparg.command('eat'))
+        with self.assertRaises(caparg.ParseError):
+            simple.parse(['drink'])
+
+    def test_boolean_false(self):
+        simple = caparg.command('',
+                     caparg.command('eat',
+                         alot=caparg.option(type=bool)))
+        self.assertFalse(simple.parse(['eat'])['alot'])
+
+    def test_boolean_true(self):
+        simple = caparg.command('',
+                     caparg.command('eat',
+                         alot=caparg.option(type=bool)))
+        self.assertTrue(simple.parse(['eat', '--alot'])['alot'])

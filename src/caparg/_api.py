@@ -113,7 +113,7 @@ class _PreOption(object):
                                     default=False)
                 return
             raise NotImplementedError("cannot add to parser",
-                                      self, parser)
+                                      self, parser) # pragma: no cover
 
         def get_value(self, namespace):
             value = getattr(namespace, self._name, self._MISSING)
