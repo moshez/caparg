@@ -24,3 +24,14 @@ class SubcommandTester(unittest.TestCase):
         self.assertEquals(list(parsed.pop('__caparg_subcommand__')),
                           ['eat'])
         self.assertEquals(parsed, {})
+
+    def test_inherit(self):
+        simple = caparg.command('',
+                     caparg.options(where=caparg.option(type=str)),
+                     caparg.command('eat',
+                             caparg.command('lunch')))
+        parsed = dict(simple.parse(['eat', 'lunch', '--where', 'cafe']))
+        self.assertEquals(list(parsed.pop('__caparg_subcommand__')),
+                          ['eat', 'lunch'])
+        self.assertEquals(parsed.pop('where'), 'cafe')
+        self.assertEquals(parsed, {})
