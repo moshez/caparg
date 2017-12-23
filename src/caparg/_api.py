@@ -172,23 +172,27 @@ class _Positional(object):
         return pyrsistent.v()
 
     def add_argument(self, parser):
+        if self._have_default:
+            raise NotImplementedError("cannot have defaults in positionals",
+                                      self._name) # pragma: no cover
         if self._type == str:
             parser.add_argument(self._name, type=str, default=self._MISSING)
             return
         raise NotImplementedError("cannot add to parser",
-                                  self, parser)
+                                  self, parser) # pragma: no cover
 
     def get_value(self, namespace):
         value = getattr(namespace, self._name, self._MISSING)
         ret = pyrsistent.m()
         if value is not self._MISSING:
             ret = ret.set(self._name, value)
-        elif self._have_default is True:
-            if self._type == str:
-                ret = ret.set(self._name, '')
-            else:
-                raise NotImplementedError("cannot default value",
-                                          self._name, self._type)
+        # argparse doesn't allow positionals to have defaults
+        # elif self._have_default is True:
+        #     if self._type == str:
+        #         ret = ret.set(self._name, '')
+        #     else:
+        #         raise NotImplementedError("cannot default value",
+        #                                   self._name, self._type)
         return ret
 
 def positional(name, type, required=False, have_default=False):
