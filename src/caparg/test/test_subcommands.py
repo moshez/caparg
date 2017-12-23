@@ -2,8 +2,6 @@ import unittest
 
 import caparg
 
-#from caparg.test import helper_subcommands
-
 class SubcommandTester(unittest.TestCase):
 
     def test_simple(self):
@@ -35,3 +33,10 @@ class SubcommandTester(unittest.TestCase):
                           ['eat', 'lunch'])
         self.assertEquals(parsed.pop('where'), 'cafe')
         self.assertEquals(parsed, {})
+
+    def test_failure(self):
+        simple = caparg.command('',
+                     caparg.command('eat',
+                               where=caparg.option(type=str, required=True)))
+        with self.assertRaises(caparg.ParseError):
+            simple.parse(['eat'])
