@@ -125,7 +125,7 @@ class _PreOption(object):
                     ret = ret.set(self._name, '')
                 else:
                     raise NotImplementedError("cannot default value",
-                                              self._name, self._type)
+                                              self._name, self._type) # pragma: no cover
             return ret
 
     def with_name(self, name):

@@ -58,3 +58,9 @@ class SubcommandTester(unittest.TestCase):
                      caparg.command('eat',
                          alot=caparg.option(type=bool)))
         self.assertTrue(simple.parse(['eat', '--alot'])['alot'])
+
+    def test_default(self):
+        simple = caparg.command('',
+                     caparg.command('eat',
+                               where=caparg.option(type=str, have_default=True)))
+        self.assertEquals(simple.parse(['eat'])['where'], '')
