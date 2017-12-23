@@ -16,8 +16,9 @@ class SubcommandTester(unittest.TestCase):
         Parsing a subcommand with one positional returns subcommand and positional
         """
         simple = caparg.command('',
-                     caparg.command('drink',
-                                    caparg.positional('what', type=str)))
+                                caparg.command('drink',
+                                               caparg.positional('what',
+                                                                 type=str)))
         parsed = dict(simple.parse(['drink', 'something']))
         self.assertEquals(parsed.pop('what'), 'something')
         self.assertEquals(list(parsed.pop('__caparg_subcommand__')),

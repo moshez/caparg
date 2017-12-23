@@ -14,5 +14,6 @@ setuptools.setup(
     author_email="zadka.moshe@gmail.com",
     packages=setuptools.find_packages(where='src'),
     package_dir={"": "src"},
-    install_requires=['attrs', 'incremental', 'pyrsistent'],
+    install_requires=['attrs', 'incremental', 'pyrsistent',
+                      'typing; python_version=="2.6"'],
 )

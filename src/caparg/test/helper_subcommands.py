@@ -1,8 +1,12 @@
+"""
+Really complicated command-line parser definition.
+"""
+
 import typing
 
 import caparg
 
-parser = caparg.command('',
+PARSER = caparg.command('',
     # These are common options.
     # They will be inherited by all sub-commands.
     caparg.options(
