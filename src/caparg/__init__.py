@@ -1,3 +1,3 @@
-from caparg.api import command, option, positional, options
+from caparg._api import command, option, positional, options, ParseError
 
-__all__ = ['command', 'option', 'positional', 'options']
+__all__ = ['command', 'option', 'positional', 'options', 'ParseError']

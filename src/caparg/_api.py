@@ -20,7 +20,7 @@ class _Command(object):
         for thing in self._args:
             for name, subcommand in thing.add_to(self._name, options):
                 subcommands = subcommands.set(name, subcommand)
-        return Parser(subcommands)
+        return _Parser(subcommands)
 
     def get_options(self):
         return []
@@ -38,7 +38,8 @@ class _Command(object):
 
     def parse(self, args):
         parser = self._make_parser()
-        return parser.parse_args(args)
+        parsed = parser.parse_args(args)
+        return parser.get_value(parsed)
 
 @attr.s(frozen=True)
 class ParseError(ValueError):
@@ -51,7 +52,7 @@ class _RaisingArgumentParser(argparse.ArgumentParser):
         raise ParseError(message)
 
 @attr.s(frozen=True)
-class Parser(object):
+class _Parser(object):
 
     _subcommands = attr.ib()
 
@@ -67,8 +68,15 @@ class Parser(object):
         parser = _RaisingArgumentParser(' '.join(args[:parts]))
         for thing in subcommand:
             thing.add_argument(parser)
-        ret = vars(parser.parse_args(rest))
-        ret['__caparg_subcommand__'] = args[:parts]
+        ret = parser.parse_args(rest)
+        ret.__caparg_subcommand__ = args[:parts]
+        return ret
+
+    def get_value(self, namespace):
+        subcommand = namespace.__caparg_subcommand__
+        ret = pyrsistent.m(__caparg_subcommand__=subcommand)
+        for thing in self._subcommands[subcommand]:
+            ret = ret.update(thing.get_value(namespace))
         return ret
 
     def _make_help(self):
@@ -91,11 +99,14 @@ class _PreOption(object):
         _required = attr.ib()
         _have_default = attr.ib()
         _name = attr.ib()
+        _MISSING = object()
 
         def add_argument(self, parser):
             if self._type == str:
-                parser.add_argument('--' + self._name, type=str,
-                                    required=self._required)
+                parser.add_argument('--' + self._name,
+                                    type=str,
+                                    required=self._required,
+                                    default=self._MISSING)
                 return
             if self._type == bool:
                 parser.add_argument('--' + self._name, action='store_true',
@@ -105,7 +116,17 @@ class _PreOption(object):
                                       self, parser)
 
         def get_value(self, namespace):
-            pass
+            value = getattr(namespace, self._name, self._MISSING)
+            ret = pyrsistent.m()
+            if value is not self._MISSING:
+                ret = ret.set(self._name, value)
+            elif self._have_default is True:
+                if self._type == str:
+                    ret = ret.set(self._name, '')
+                else:
+                    raise NotImplementedError("cannot default value",
+                                              self._name, self._type)
+            return ret
 
     def with_name(self, name):
         return self.Option(name=name, type=self._type, required=self._required,
@@ -142,6 +163,7 @@ class _Positional(object):
     _type = attr.ib()
     _required = attr.ib()
     _have_default = attr.ib()
+    _MISSING = object()
 
     def get_options(self):
         return pyrsistent.v(self)
@@ -151,10 +173,23 @@ class _Positional(object):
 
     def add_argument(self, parser):
         if self._type == str:
-            parser.add_argument(self._name, type=str)
+            parser.add_argument(self._name, type=str, default=self._MISSING)
             return
         raise NotImplementedError("cannot add to parser",
                                   self, parser)
+
+    def get_value(self, namespace):
+        value = getattr(namespace, self._name, self._MISSING)
+        ret = pyrsistent.m()
+        if value is not self._MISSING:
+            ret = ret.set(self._name, value)
+        elif self._have_default is True:
+            if self._type == str:
+                ret = ret.set(self._name, '')
+            else:
+                raise NotImplementedError("cannot default value",
+                                          self._name, self._type)
+        return ret
 
 def positional(name, type, required=False, have_default=False):
     return _Positional(name, type, required, have_default)
