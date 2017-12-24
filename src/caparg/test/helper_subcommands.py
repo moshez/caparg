@@ -4,53 +4,53 @@ Really complicated command-line parser definition.
 
 import typing
 
-import caparg
+from caparg import command, options, option, positional
 
-PARSER = caparg.command('',
-    # These are common options.
-    # They will be inherited by all sub-commands.
-    caparg.options(
-        messages=caparg.option(type=str, required=True),
-        config=caparg.option(type=str, required=True),
-    ),
-    # This is a subcommand, "add"
-    # It takes a bewildering array of options!
-    caparg.command('add',
-        name=caparg.option(type=str, required=True),
-        cmd=caparg.option(type=str, required=True),
-        arg=caparg.option(type=typing.List[str], have_default=True),
-        env=caparg.option(type=typing.Dict[str,str], have_default=True),
-        uid=caparg.option(type=int),
-        gid=caparg.option(type=int),
-        extras=caparg.option(type=str),
-    ),
-    # This is a subcommand, "remove"
-    # It takes one option
-    caparg.command('remove',
-        name=caparg.option(type=str, required=True),
-    ),
-    # This is a subcommand, "restart"
-    # It takes one option
-    caparg.command('restart',
-        name=caparg.option(type=str, required=True),
-    ),
-    # This is a subcommand, "restart-all"
-    # It takes no options.
-    caparg.command('restart-all',
-    ),
-    # This is a subcommand, "remote".
-    # It can be called directly...
-    caparg.command('remote',
-        caparg.options(verbose=caparg.option(type=bool)),
-        # ...or with a sub-subcommand 'remove'
-        caparg.command('remove',
-            caparg.positional(name='name', type=str),
-        ),
-    ),
-    # It is also possible to put sub-sub-commands at the top-level.
-    # In that case, they are separated with whitespace.
-    caparg.command('remote add',
-        caparg.positional(name='name', type=str),
-        caparg.positional(name='url', type=str),
-    ),
-)
+PARSER = command('',
+                 # These are common options.
+                 # They will be inherited by all sub-commands.
+                 options(
+                     messages=option(type=str, required=True),
+                     config=option(type=str, required=True),
+                 ),
+                 # This is a subcommand, "add"
+                 # It takes a bewildering array of options!
+                 command('add',
+                         name=option(type=str, required=True),
+                         cmd=option(type=str, required=True),
+                         arg=option(type=typing.List[str], have_default=True),
+                         env=option(type=typing.Dict[str, str],
+                                    have_default=True),
+                         uid=option(type=int),
+                         gid=option(type=int),
+                         extras=option(type=str),
+                        ),
+                 # This is a subcommand, "remove"
+                 # It takes one option
+                 command('remove',
+                         name=option(type=str, required=True),
+                        ),
+                 # This is a subcommand, "restart"
+                 # It takes one option
+                 command('restart',
+                         name=option(type=str, required=True),
+                        ),
+                 # This is a subcommand, "restart-all"
+                 # It takes no options.
+                 command('restart-all'),
+                 # This is a subcommand, "remote".
+                 # It can be called directly...
+                 command('remote',
+                         options(verbose=option(type=bool)),
+                         # ...or with a sub-subcommand 'remove'
+                         command('remove',
+                                 positional(name='name', type=str),
+                                ),
+                        ),
+                 # It is also possible to put sub-sub-commands at the top-level.
+                 # In that case, they are separated with whitespace.
+                 command('remote add',
+                         positional(name='name', type=str),
+                         positional(name='url', type=str),
+                        ),
+                )

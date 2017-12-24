@@ -23,7 +23,7 @@ class _Command(object):
         return _Parser(subcommands)
 
     def get_options(self):
-        return []
+        return pyrsistent.v()
 
     def add_to(self, parent_name, options):
         ret = pyrsistent.m()
@@ -154,10 +154,24 @@ class _OptionList(object):
 
 
 def options(**kwargs):
+    """
+    Wrap options
+
+    This is used to be able to put options at the beginning of the
+    argument list of a command. Since options are given by keywords,
+    they must follow positional arguments."
+
+    Args:
+        **kwargs (Dict[str, option]): Mapping 
+    """
     return _OptionList(pyrsistent.pmap(kwargs))
 
 @attr.s(frozen=True)
 class _Positional(object):
+
+    """
+    Positional argument
+    """
 
     _name = attr.ib()
     _type = attr.ib()
@@ -166,12 +180,37 @@ class _Positional(object):
     _MISSING = object()
 
     def get_options(self):
+        """
+        Return options to be added to current and sub-parsers
+
+        Returns:
+            immutable iterable containing self
+        """
         return pyrsistent.v(self)
 
     def add_to(self, parent_name, options):
+        """
+        Return subcommands to be added
+
+        Args:
+            parent_name (List[str]): full name of the parent
+            options (List[option interface?]): list of options to inherit
+
+        Returns:
+            empty immutable iterable
+        """
         return pyrsistent.v()
 
     def add_argument(self, parser):
+        """
+        Add ourselves to a :code:`argparse.ArgumentParser`
+
+        Add details of class to an :code:`ArgumentParser` which
+        will parse this positional.
+
+        Args:
+            parser (argparse.ArgumentParser): the parser 
+        """
         if self._have_default:
             raise NotImplementedError("cannot have defaults in positionals",
                                       self._name) # pragma: no cover
@@ -182,6 +221,15 @@ class _Positional(object):
                                   self, parser) # pragma: no cover
 
     def get_value(self, namespace):
+        """
+        Get the value from a 'namespace'.
+
+        Args:
+            namespace (object): something with potentially the named attribute
+ 
+        Returns:
+            an immutable mapping which is either empty, or has one element
+        """
         value = getattr(namespace, self._name, self._MISSING)
         ret = pyrsistent.m()
         if value is not self._MISSING:
@@ -195,5 +243,20 @@ class _Positional(object):
         #                                   self._name, self._type)
         return ret
 
+# pylint: disable=redefined-builtin
 def positional(name, type, required=False, have_default=False):
+    """
+    A positional argument
+
+    Args:
+        name (str): name of argument
+        type (type): expected type
+        required (boolean): argument is required (default :code:`False`)
+        have_default (boolean): if argument is not given, generate
+                                a default (default :code:`False`)
+
+    Returns:
+        Something with add_to and get_value
+    """
     return _Positional(name, type, required, have_default)
+# pylint: enable=redefined-builtin
