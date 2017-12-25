@@ -88,12 +88,22 @@ class _Parser(object):
 @attr.s(frozen=True)
 class _PreOption(object):
 
+    """
+    Something that could be turned into an option
+
+    An option that lacks a name.
+    """
+
     _type = attr.ib()
     _required = attr.ib(default=False)
     _have_default = attr.ib(default=False)
 
     @attr.s(frozen=True)
     class Option(object):
+
+        """
+        An option
+        """
 
         _type = attr.ib()
         _required = attr.ib()
@@ -102,6 +112,12 @@ class _PreOption(object):
         _MISSING = object()
 
         def add_argument(self, parser):
+            """
+            Add ourselves to an argument parser
+
+            Args:
+                parser (argparse.ArgumentParser): the parser to add to
+            """
             if self._type == str:
                 parser.add_argument('--' + self._name,
                                     type=str,
@@ -116,6 +132,15 @@ class _PreOption(object):
                                       self, parser) # pragma: no cover
 
         def get_value(self, namespace):
+            """
+            Get value out of a namespace
+
+            Args:
+                namespace (argparse.Namespace): the namespace
+
+            Returns:
+                a value
+            """
             value = getattr(namespace, self._name, self._MISSING)
             ret = pyrsistent.m()
             if value is not self._MISSING:
@@ -129,14 +154,44 @@ class _PreOption(object):
             return ret
 
     def with_name(self, name):
+        """
+        Save a name
+
+        Args:
+            name (str): The name of the option
+        
+        Returns:
+            something with add_argument and get_value
+        """
         return self.Option(name=name, type=self._type, required=self._required,
                                       have_default=self._have_default)
 
 
 def command(_name, *args, **kwargs):
+    """
+    A command (or a subcommand)
+
+    Args:
+        _name (str): the name of the subcommand (for top-level, '')
+        *args (tuple): commands and options
+        **kwargs (dict): options by name
+    """   
     return _Command(_name, args, kwargs)
 
+
 def option(type, required=False, have_default=False):
+    """
+    An option
+
+    Note that an option does not know its name. It will usually be used
+    in a dictionary where the name is specified as its key, and it has
+    a method :code:`with_name` to add the name when processed.
+
+    Args:
+        type (class): the expected input type
+        required (bool): whether option name is expected
+        have_default (bool): whether to auto-create a default based on the type
+    """
     return _PreOption(type, required=required, have_default=have_default)
 
 @attr.s(frozen=True)
@@ -184,6 +239,7 @@ def options(**kwargs):
     """
     return _OptionList(pyrsistent.pmap(kwargs))
 
+
 @attr.s(frozen=True)
 class _Positional(object):
 
@@ -218,7 +274,6 @@ class _Positional(object):
             empty immutable iterable
         """
         return pyrsistent.v()
-    # pylint: enable=unused-argument
 
     def add_argument(self, parser):
         """
