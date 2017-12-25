@@ -1,3 +1,9 @@
+"""
+Implementation of argument parsing.
+
+Should not be imported directly by user code.
+"""
+
 import argparse
 
 import attr
@@ -6,6 +12,10 @@ import pyrsistent
 
 @attr.s(frozen=True)
 class _Command(object):
+
+    """
+    Top-level command or subcommand
+    """
 
     _name = attr.ib(convert=lambda x: pyrsistent.pvector(x.split()))
     _args = attr.ib()
@@ -24,9 +34,25 @@ class _Command(object):
         return _Parser(subcommands)
 
     def get_options(self):
+        """
+        Options that should only be inherited
+
+        Returns:
+            empty immutable iterable
+        """
         return pyrsistent.v()
 
     def add_to(self, parent_name, my_options):
+        """
+        Command-line details to add to subparser
+
+        Args:
+            parent_name (List[str]): name of parent
+            my_options (Dict[str,thing]): inherited options
+
+        Returns:
+           a tuple: (full_name, options)
+        """
         full_name = parent_name + self._name
         for thing in self._args:
             my_options += thing.get_options()
@@ -37,13 +63,25 @@ class _Command(object):
             yield full_name, my_options + self._options
 
     def parse(self, args):
+        """
+        Parse command-line
+
+        Args:
+            args (List[str]): command-line arguments
+
+        Returns:
+            immutable map with __caparg_subcommand__ as one of the keys
+        """
         parser = self._make_parser()
-        parsed = parser.parse_args(args)
-        return parser.get_value(parsed)
+        return parser.parse_args(args)
 
 
 @attr.s(frozen=True)
 class ParseError(ValueError):
+
+    """
+    Command-line arguments are invalid
+    """
 
     message = attr.ib()
 
@@ -60,6 +98,15 @@ class _Parser(object):
     _subcommands = attr.ib()
 
     def parse_args(self, args):
+        """
+        Parse arguments
+
+        Args:
+            args (List[str]): command-line arguments
+
+        Returns:
+            immutable map, where one of the keys is __caparg_subcommand__
+        """
         args = pyrsistent.pvector(args)
         candidates = [i
                       for i in range(1, len(args)+1)
@@ -71,14 +118,9 @@ class _Parser(object):
         parser = _RaisingArgumentParser(' '.join(args[:parts]))
         for thing in subcommand:
             thing.add_argument(parser)
-        ret = parser.parse_args(rest)
-        ret.__caparg_subcommand__ = args[:parts]
-        return ret
-
-    def get_value(self, namespace):
-        subcommand = namespace.__caparg_subcommand__
-        ret = pyrsistent.m(__caparg_subcommand__=subcommand)
-        for thing in self._subcommands[subcommand]:
+        namespace = parser.parse_args(rest)
+        ret = pyrsistent.m(__caparg_subcommand__=args[:parts])
+        for thing in subcommand:
             ret = ret.update(thing.get_value(namespace))
         return ret
 
