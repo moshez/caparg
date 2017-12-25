@@ -179,6 +179,7 @@ def command(_name, *args, **kwargs):
     return _Command(_name, args, kwargs)
 
 
+# pylint: disable=redefined-builtin
 def option(type, required=False, have_default=False):
     """
     An option
@@ -193,6 +194,7 @@ def option(type, required=False, have_default=False):
         have_default (bool): whether to auto-create a default based on the type
     """
     return _PreOption(type, required=required, have_default=have_default)
+# pylint: enable=redefined-builtin
 
 @attr.s(frozen=True)
 class _OptionList(object):
