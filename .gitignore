@@ -1,0 +1,7 @@
+/build
+*.egg-info
+__pycache__
+*.pyc
+/.python-version
+/.cache
+/.eggs
