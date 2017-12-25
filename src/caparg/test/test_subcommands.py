@@ -5,6 +5,7 @@ import unittest
 
 import caparg
 
+
 class SubcommandTester(unittest.TestCase):
 
     """

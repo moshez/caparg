@@ -3,22 +3,23 @@ import argparse
 import attr
 import pyrsistent
 
+
 @attr.s(frozen=True)
 class _Command(object):
 
     _name = attr.ib(convert=lambda x: pyrsistent.pvector(x.split()))
     _args = attr.ib()
     _options = attr.ib(convert=lambda x:
-                               pyrsistent.pvector(value.with_name(key)
-                                                  for key, value in x.items()))
+                       pyrsistent.pvector(value.with_name(key)
+                                          for key, value in x.items()))
 
     def _make_parser(self):
-        options = self._options
+        my_options = self._options
         subcommands = pyrsistent.m()
         for thing in self._args:
-            options += thing.get_options()
+            my_options += thing.get_options()
         for thing in self._args:
-            for name, subcommand in thing.add_to(self._name, options):
+            for name, subcommand in thing.add_to(self._name, my_options):
                 subcommands = subcommands.set(name, subcommand)
         return _Parser(subcommands)
 
@@ -26,30 +27,32 @@ class _Command(object):
         return pyrsistent.v()
 
     def add_to(self, parent_name, my_options):
-        ret = pyrsistent.m()
         full_name = parent_name + self._name
         for thing in self._args:
-            options += thing.get_options()
+            my_options += thing.get_options()
         for thing in self._args:
-            for name, suboptions in thing.add_to(full_name, options):
+            for name, suboptions in thing.add_to(full_name, my_options):
                 yield name, suboptions
         if self._name:
-            yield full_name, options + self._options
+            yield full_name, my_options + self._options
 
     def parse(self, args):
         parser = self._make_parser()
         parsed = parser.parse_args(args)
         return parser.get_value(parsed)
 
+
 @attr.s(frozen=True)
 class ParseError(ValueError):
 
-     message = attr.ib()
+    message = attr.ib()
+
 
 class _RaisingArgumentParser(argparse.ArgumentParser):
 
     def error(self, message):
         raise ParseError(message)
+
 
 @attr.s(frozen=True)
 class _Parser(object):
@@ -84,6 +87,7 @@ class _Parser(object):
         for key in sorted(self._subcommands):
             parts.append("    " + " ".join(key) + "\n")
         return ''.join(parts)
+
 
 @attr.s(frozen=True)
 class _PreOption(object):
@@ -129,7 +133,7 @@ class _PreOption(object):
                                     default=False)
                 return
             raise NotImplementedError("cannot add to parser",
-                                      self, parser) # pragma: no cover
+                                      self, parser)  # pragma: no cover
 
         def get_value(self, namespace):
             """
@@ -148,9 +152,9 @@ class _PreOption(object):
             elif self._have_default is True:
                 if self._type == str:
                     ret = ret.set(self._name, '')
-                else:
+                else:  # pragma: no cover
                     raise NotImplementedError("cannot default value",
-                                              self._name, self._type) # pragma: no cover
+                                              self._name, self._type)
             return ret
 
     def with_name(self, name):
@@ -159,12 +163,12 @@ class _PreOption(object):
 
         Args:
             name (str): The name of the option
-        
+
         Returns:
             something with add_argument and get_value
         """
         return self.Option(name=name, type=self._type, required=self._required,
-                                      have_default=self._have_default)
+                           have_default=self._have_default)
 
 
 def command(_name, *args, **kwargs):
@@ -175,7 +179,7 @@ def command(_name, *args, **kwargs):
         _name (str): the name of the subcommand (for top-level, '')
         *args (tuple): commands and options
         **kwargs (dict): options by name
-    """   
+    """
     return _Command(_name, args, kwargs)
 
 
@@ -196,14 +200,15 @@ def option(type, required=False, have_default=False):
     return _PreOption(type, required=required, have_default=have_default)
 # pylint: enable=redefined-builtin
 
+
 @attr.s(frozen=True)
 class _OptionList(object):
 
     """List of options"""
 
     _options = attr.ib(convert=lambda x:
-                               pyrsistent.pvector(value.with_name(key)
-                                                  for key, value in x.items()))
+                       pyrsistent.pvector(value.with_name(key)
+                                          for key, value in x.items()))
 
     def get_options(self):
         """
@@ -237,7 +242,7 @@ def options(**kwargs):
     they must follow positional arguments."
 
     Args:
-        **kwargs (Dict[str, option]): Mapping 
+        **kwargs (Dict[str, option]): Mapping
     """
     return _OptionList(pyrsistent.pmap(kwargs))
 
@@ -285,16 +290,16 @@ class _Positional(object):
         will parse this positional.
 
         Args:
-            parser (argparse.ArgumentParser): the parser 
+            parser (argparse.ArgumentParser): the parser
         """
         if self._have_default:
             raise NotImplementedError("cannot have defaults in positionals",
-                                      self._name) # pragma: no cover
+                                      self._name)  # pragma: no cover
         if self._type == str:
             parser.add_argument(self._name, type=str, default=self._MISSING)
             return
         raise NotImplementedError("cannot add to parser",
-                                  self, parser) # pragma: no cover
+                                  self, parser)  # pragma: no cover
 
     def get_value(self, namespace):
         """
@@ -302,7 +307,7 @@ class _Positional(object):
 
         Args:
             namespace (object): something with potentially the named attribute
- 
+
         Returns:
             an immutable mapping which is either empty, or has one element
         """
@@ -318,6 +323,7 @@ class _Positional(object):
         #         raise NotImplementedError("cannot default value",
         #                                   self._name, self._type)
         return ret
+
 
 # pylint: disable=redefined-builtin
 def positional(name, type, required=False, have_default=False):
