@@ -25,7 +25,7 @@ class _Command(object):
     def get_options(self):
         return pyrsistent.v()
 
-    def add_to(self, parent_name, options):
+    def add_to(self, parent_name, my_options):
         ret = pyrsistent.m()
         full_name = parent_name + self._name
         for thing in self._args:
@@ -142,14 +142,32 @@ def option(type, required=False, have_default=False):
 @attr.s(frozen=True)
 class _OptionList(object):
 
+    """List of options"""
+
     _options = attr.ib(convert=lambda x:
                                pyrsistent.pvector(value.with_name(key)
                                                   for key, value in x.items()))
 
     def get_options(self):
+        """
+        Return options for current command and subcommands.
+
+        Returns:
+            immutable iterable of things with add_argument and get_value
+        """
         return self._options
 
-    def add_to(self, parent_name, options):
+    def add_to(self, _parent_name, _options):
+        """
+        Return subcommands to be added
+
+        Args:
+            parent_name (List[str]): full name of the parent
+            options (List[option interface?]): list of options to inherit
+
+        Returns:
+            empty immutable iterable
+        """
         return pyrsistent.v()
 
 
@@ -188,7 +206,7 @@ class _Positional(object):
         """
         return pyrsistent.v(self)
 
-    def add_to(self, parent_name, options):
+    def add_to(self, _parent_name, _options):
         """
         Return subcommands to be added
 
@@ -200,6 +218,7 @@ class _Positional(object):
             empty immutable iterable
         """
         return pyrsistent.v()
+    # pylint: enable=unused-argument
 
     def add_argument(self, parser):
         """
