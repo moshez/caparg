@@ -23,6 +23,9 @@ class _Command(object):
 
 
     def rename(self, new_name):
+        """
+        Return a new command with a different name
+        """
         return attr.evolve(self, name=pyrsistent.pvector(new_name.split()))
 
     def _make_parser(self):
