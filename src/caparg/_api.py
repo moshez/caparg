@@ -21,7 +21,6 @@ class _Command(object):
     _args = attr.ib()
     _options = attr.ib()
 
-
     def rename(self, new_name):
         """
         Return a new command with a different name
