@@ -26,6 +26,18 @@ class SubcommandTester(unittest.TestCase):
                           ['drink'])
         self.assertEquals(parsed, {})
 
+    def test_evolution(self):
+        """
+        You can evolve a command to a different name
+        """
+        eat = caparg.command('eat')
+        drink = eat.rename('drink')
+        simple = caparg.command('', drink)
+        parsed = dict(simple.parse(['drink']))
+        self.assertEquals(list(parsed.pop('__caparg_subcommand__')),
+                          ['drink'])
+        self.assertEquals(parsed, {})
+
     def test_optional(self):
         """
         Not passing in an optional argument causes nothing to be in the return
