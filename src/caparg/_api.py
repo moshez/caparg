@@ -17,11 +17,15 @@ class _Command(object):
     Top-level command or subcommand
     """
 
-    _name = attr.ib(convert=lambda x: pyrsistent.pvector(x.split()))
+    _name = attr.ib()
     _args = attr.ib()
-    _options = attr.ib(convert=lambda x:
-                       pyrsistent.pvector(value.with_name(key)
-                                          for key, value in x.items()))
+    _options = attr.ib()
+
+    def rename(self, new_name):
+        """
+        Return a new command with a different name
+        """
+        return attr.evolve(self, name=pyrsistent.pvector(new_name.split()))
 
     def _make_parser(self):
         my_options = self._options
@@ -222,7 +226,10 @@ def command(_name, *args, **kwargs):
         *args (tuple): commands and options
         **kwargs (dict): options by name
     """
-    return _Command(_name, args, kwargs)
+    _name = pyrsistent.pvector(_name.split())
+    my_options = pyrsistent.pvector(value.with_name(key)
+                                    for key, value in kwargs.items())
+    return _Command(_name, args, my_options)
 
 
 # pylint: disable=redefined-builtin
