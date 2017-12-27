@@ -113,3 +113,15 @@ class SubcommandTester(unittest.TestCase):
                                  where=option(type=str,
                                               have_default=True)))
         self.assertEquals(simple.parse(['eat'])['where'], '')
+
+    def test_dashes(self):
+        """
+        Underscores are interpreted as dashes on the command-line
+        """
+        command = caparg.command
+        option = caparg.option
+        simple = command('',
+                         command('do_it',
+                                 good_thing=option(type=str)))
+        parsed = simple.parse(['do-it', '--good-thing', 'stuff'])
+        self.assertEquals(parsed['good_thing'], 'stuff')

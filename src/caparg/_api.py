@@ -9,6 +9,8 @@ import argparse
 import attr
 import pyrsistent
 
+def _convert(name):
+    return pyrsistent.pvector(name.replace('_', '-').split())
 
 @attr.s(frozen=True)
 class _Command(object):
@@ -25,7 +27,7 @@ class _Command(object):
         """
         Return a new command with a different name
         """
-        return attr.evolve(self, name=pyrsistent.pvector(new_name.split()))
+        return attr.evolve(self, name=_convert(new_name))
 
     def _make_parser(self):
         my_options = self._options
@@ -168,14 +170,15 @@ class _PreOption(object):
             Args:
                 parser (argparse.ArgumentParser): the parser to add to
             """
+            opt_name = '--' + self._name.replace('_', '-')
             if self._type == str:
-                parser.add_argument('--' + self._name,
+                parser.add_argument(opt_name,
                                     type=str,
                                     required=self._required,
                                     default=self._MISSING)
                 return
             if self._type == bool:
-                parser.add_argument('--' + self._name, action='store_true',
+                parser.add_argument(opt_name, action='store_true',
                                     default=False)
                 return
             raise NotImplementedError("cannot add to parser",
@@ -213,7 +216,9 @@ class _PreOption(object):
         Returns:
             something with add_argument and get_value
         """
-        return self.Option(name=name, type=self._type, required=self._required,
+        return self.Option(name=name,
+                           type=self._type,
+                           required=self._required,
                            have_default=self._have_default)
 
 
@@ -226,7 +231,7 @@ def command(_name, *args, **kwargs):
         *args (tuple): commands and options
         **kwargs (dict): options by name
     """
-    _name = pyrsistent.pvector(_name.split())
+    _name = _convert(_name)
     my_options = pyrsistent.pvector(value.with_name(key)
                                     for key, value in kwargs.items())
     return _Command(_name, args, my_options)
