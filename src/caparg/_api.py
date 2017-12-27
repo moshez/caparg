@@ -9,8 +9,10 @@ import argparse
 import attr
 import pyrsistent
 
+
 def _convert(name):
     return pyrsistent.pvector(name.replace('_', '-').split())
+
 
 @attr.s(frozen=True)
 class _Command(object):
