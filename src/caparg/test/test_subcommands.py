@@ -1,6 +1,7 @@
 """
 Testing for Captain Arguments' sub-commmands!
 """
+from typing import List
 import unittest
 
 import caparg
@@ -125,3 +126,40 @@ class SubcommandTester(unittest.TestCase):
                                  good_thing=option(type=str)))
         parsed = simple.parse(['do-it', '--good-thing', 'stuff'])
         self.assertEquals(parsed['good_thing'], 'stuff')
+
+    def test_list_str(self):
+        """
+        option(type=List[str]) returns list of strings
+        """
+        command = caparg.command
+        option = caparg.option
+        simple = command('',
+                         command('eat',
+                                 what=option(type=List[str])))
+        parsed = simple.parse(['eat', '--what', 'rice', '--what', 'beans'])
+        self.assertEquals(parsed['what'], ['rice', 'beans'])
+
+    def test_empty_list_str(self):
+        """
+        An empty list without a default does not appear in result
+        """
+        command = caparg.command
+        option = caparg.option
+        simple = command('',
+                         command('eat',
+                                 what=option(type=List[str])))
+        parsed = simple.parse(['eat'])
+        self.assertNotIn('what', parsed)
+
+    def test_empty_list_str_default(self):
+        """
+        An empty list with a default is empty in result
+        """
+        command = caparg.command
+        option = caparg.option
+        simple = command('',
+                         command('eat',
+                                 what=option(type=List[str],
+                                             have_default=True)))
+        parsed = simple.parse(['eat'])
+        self.assertEquals(list(parsed['what']), [])
