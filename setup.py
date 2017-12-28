@@ -15,5 +15,5 @@ setuptools.setup(
     packages=setuptools.find_packages(where='src'),
     package_dir={"": "src"},
     install_requires=['attrs', 'incremental', 'pyrsistent',
-                      'typing; python_version=="2.6"'],
+                      'typing; python_version=="2.7"'],
 )

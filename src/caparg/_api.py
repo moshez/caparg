@@ -5,6 +5,7 @@ Should not be imported directly by user code.
 """
 
 import argparse
+import typing
 
 import attr
 import pyrsistent
@@ -178,13 +179,14 @@ class _PreOption(object):
                                     type=str,
                                     required=self._required,
                                     default=self._MISSING)
-                return
-            if self._type == bool:
+            elif self._type == bool:
                 parser.add_argument(opt_name, action='store_true',
                                     default=False)
-                return
-            raise NotImplementedError("cannot add to parser",
-                                      self, parser)  # pragma: no cover
+            elif self._type == typing.List[str]:
+                parser.add_argument(opt_name, action='append')
+            else:
+                raise NotImplementedError("cannot add to parser",
+                                          self, parser)  # pragma: no cover
 
         def get_value(self, namespace):
             """
@@ -198,11 +200,15 @@ class _PreOption(object):
             """
             value = getattr(namespace, self._name, self._MISSING)
             ret = pyrsistent.m()
+            if value is None and self._type == typing.List[str]:
+                value = self._MISSING
             if value is not self._MISSING:
                 ret = ret.set(self._name, value)
             elif self._have_default is True:
                 if self._type == str:
                     ret = ret.set(self._name, '')
+                elif self._type == typing.List[str]:
+                    ret = ret.set(self._name, pyrsistent.v())
                 else:  # pragma: no cover
                     raise NotImplementedError("cannot default value",
                                               self._name, self._type)
