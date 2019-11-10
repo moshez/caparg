@@ -22,10 +22,10 @@ class SubcommandTester(unittest.TestCase):
                                                caparg.positional('what',
                                                                  type=str)))
         parsed = dict(simple.parse(['drink', 'something']))
-        self.assertEquals(parsed.pop('what'), 'something')
-        self.assertEquals(list(parsed.pop('__caparg_subcommand__')),
+        self.assertEqual(parsed.pop('what'), 'something')
+        self.assertEqual(list(parsed.pop('__caparg_subcommand__')),
                           ['drink'])
-        self.assertEquals(parsed, {})
+        self.assertEqual(parsed, {})
 
     def test_evolution(self):
         """
@@ -35,9 +35,9 @@ class SubcommandTester(unittest.TestCase):
         drink = eat.rename('drink')
         simple = caparg.command('', drink)
         parsed = dict(simple.parse(['drink']))
-        self.assertEquals(list(parsed.pop('__caparg_subcommand__')),
+        self.assertEqual(list(parsed.pop('__caparg_subcommand__')),
                           ['drink'])
-        self.assertEquals(parsed, {})
+        self.assertEqual(parsed, {})
 
     def test_optional(self):
         """
@@ -47,9 +47,9 @@ class SubcommandTester(unittest.TestCase):
                                 caparg.command('eat',
                                                what=caparg.option(type=str)))
         parsed = dict(simple.parse(['eat']))
-        self.assertEquals(list(parsed.pop('__caparg_subcommand__')),
+        self.assertEqual(list(parsed.pop('__caparg_subcommand__')),
                           ['eat'])
-        self.assertEquals(parsed, {})
+        self.assertEqual(parsed, {})
 
     def test_inherit(self):
         """
@@ -60,10 +60,10 @@ class SubcommandTester(unittest.TestCase):
                                 caparg.command('eat',
                                                caparg.command('lunch')))
         parsed = dict(simple.parse(['eat', 'lunch', '--where', 'cafe']))
-        self.assertEquals(list(parsed.pop('__caparg_subcommand__')),
+        self.assertEqual(list(parsed.pop('__caparg_subcommand__')),
                           ['eat', 'lunch'])
-        self.assertEquals(parsed.pop('where'), 'cafe')
-        self.assertEquals(parsed, {})
+        self.assertEqual(parsed.pop('where'), 'cafe')
+        self.assertEqual(parsed, {})
 
     def test_no_required(self):
         """
@@ -113,7 +113,7 @@ class SubcommandTester(unittest.TestCase):
                          command('eat',
                                  where=option(type=str,
                                               have_default=True)))
-        self.assertEquals(simple.parse(['eat'])['where'], '')
+        self.assertEqual(simple.parse(['eat'])['where'], '')
 
     def test_dashes(self):
         """
@@ -125,7 +125,7 @@ class SubcommandTester(unittest.TestCase):
                          command('do_it',
                                  good_thing=option(type=str)))
         parsed = simple.parse(['do-it', '--good-thing', 'stuff'])
-        self.assertEquals(parsed['good_thing'], 'stuff')
+        self.assertEqual(parsed['good_thing'], 'stuff')
 
     def test_list_str(self):
         """
@@ -137,7 +137,7 @@ class SubcommandTester(unittest.TestCase):
                          command('eat',
                                  what=option(type=List[str])))
         parsed = simple.parse(['eat', '--what', 'rice', '--what', 'beans'])
-        self.assertEquals(parsed['what'], ['rice', 'beans'])
+        self.assertEqual(parsed['what'], ['rice', 'beans'])
 
     def test_empty_list_str(self):
         """
@@ -162,4 +162,4 @@ class SubcommandTester(unittest.TestCase):
                                  what=option(type=List[str],
                                              have_default=True)))
         parsed = simple.parse(['eat'])
-        self.assertEquals(list(parsed['what']), [])
+        self.assertEqual(list(parsed['what']), [])
