@@ -268,7 +268,7 @@ class _OptionList(object):
 
     """List of options"""
 
-    _options = attr.ib(convert=lambda x:
+    _options = attr.ib(converter=lambda x:
                        pyrsistent.pvector(value.with_name(key)
                                           for key, value in x.items()))
 
