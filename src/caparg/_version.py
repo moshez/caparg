@@ -7,5 +7,5 @@ Provides caparg version information.
 
 from incremental import Version
 
-__version__ = Version('caparg', 17, 12, 3)
+__version__ = Version('caparg', 19, 11, 0)
 __all__ = ["__version__"]
